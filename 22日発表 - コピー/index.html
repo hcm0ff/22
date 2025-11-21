@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>伝統めぐり — 伝統文化紹介アプリ（サンプル）</title>
+  <!-- 外部CSSを読み込む -->
+  <link rel="stylesheet" href="style.css" />
+  <!-- model-viewer (AR表示ライブラリ) -->
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.1.1/model-viewer.min.js"></script>
+
+</head>
+<body>
+  <!--
+    アプリ全体の構造（モバイルファースト）：
+    - 上部固定ナビ（ロゴ／検索バー／アイコン）
+    - main 内に 3つのページセクションを同居（単一HTMLで疑似遷移）
+      1) TOPページ（カルーセル、カテゴリ、注目ワード、特集、カード群）
+      2) 結果ページ（左カラム:フォーム＆選択、右カラム:カード結果）
+      3) なぞって検索（簡易地図UIで円形範囲指定→ピン表示）
+    - JSでハッシュルーターを実装し、#top / #results / #map の切り替え
+    - BEM風クラス命名で読みやすさ・拡張性を担保
+  -->
+
+  <!-- 上部固定ナビゲーションバー（sticky header） -->
+  <header class="site-header" role="banner">
+    <div class="site-header__inner">
+      <!-- 左：ロゴ（オリジナル文言・意匠） -->
+      <a class="site-header__logo" href="#top" aria-label="トップへ">
+        <!-- シンプルな幾何学ロゴ（著作権回避のため自作テキスト） -->
+        <span class="logo__mark" aria-hidden="true">和</span>
+        <span class="logo__text">伝統めぐり</span>
+      </a>
+
+      <!-- 中央：検索バー（キーワード検索） -->
+      <!-- 仕様：入力→結果ページに遷移（#results） -->
+      <div class="site-header__search">
+        <form class="search" id="globalSearchForm" role="search">
+          <!-- 入力欄：キーワード -->
+          <input class="search__input" id="globalSearchInput" type="search" placeholder="地名・体験・工芸などを検索" aria-label="検索キーワード" />
+          <!-- 送信ボタン：結果ページへ遷移 -->
+          <button class="search__button" type="submit" aria-label="検索する">検索</button>
+        </form>
+      </div>
+
+      <!-- 右：アイコン群（メニュー・お気に入り・地図） -->
+      <nav class="site-header__icons" aria-label="ショートカット">
+        <!-- メニュー（モバイルで開く動作はダミー） -->
+        <button class="icon icon--menu" aria-label="メニュー">☰</button>
+        <!-- お気に入り（ダミー） -->
+        <button class="icon icon--favorite" aria-label="お気に入り">☆</button>
+        <!-- 地図へショートカット -->
+        <a class="icon icon--map" aria-label="なぞって検索へ" href="#map">🗺</a>
+      </nav>
+    </div>
+
+    <!-- 検索拡張：地域から検索のショートボタン（TOPの検索バー下に表示想定だが、ヘッダー下にも配置） -->
+    <!-- 仕様に沿って、都道府県→市町村の階層選択へ誘導 -->
+    <div class="site-header__ext">
+      <button class="ext__button" id="goRegionSearch">地域から検索</button>
+      <button class="ext__button" id="goMapSearch">なぞって検索</button>
+    </div>
+  </header>
+
+  <!-- メインコンテンツ領域 -->
+  <main class="site-main">
+    <!-- ========================= -->
+    <!-- 1) TOPページセクション   -->
+    <!-- ========================= -->
+    <section id="page-top" class="page page--top" aria-label="トップページ">
+      <!-- 大型カルーセル（横スライド、全幅、自動再生、スワイプ対応） -->
+      <section class="carousel" aria-label="注目テーマバナー">
+        <div class="carousel__viewport">
+          <div class="carousel__track">
+            <!-- 各スライド：仮画像（SVG data URL）、キャプション -->
+            <div class="carousel__slide" data-slide-index="0" style="background-image:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%221600%22 height=%22600%22><defs><linearGradient id=%22g%22 x1=%220%22 x2=%221%22><stop offset=%220%25%22 stop-color=%22%23a13131%22/><stop offset=%22100%25%22 stop-color=%22%23cf6b3b%22/></linearGradient></defs><rect width=%22100%25%22 height=%22100%25%22 fill=%22url(%23g)%22/><text x=%2250%25%22 y=%2252%25%22 font-size=%2240%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22 fill=%22%23fff3e0%22>土と火の美 — 陶芸を訪ねる</text></svg>');">
+              <div class="carousel__caption">
+                <h2 class="carousel__title">土と火の美 — 陶芸を訪ねる</h2>
+                <p class="carousel__subtitle">息づく技を体験できる地域特集</p>
+              </div>
+            </div>
+            <div class="carousel__slide" data-slide-index="1" style="background-image:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%221600%22 height=%22600%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%232c5b44%22/><text x=%2250%25%22 y=%2248%25%22 font-size=%2240%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22 fill=%22%23fff3e0%22>太鼓の響き — 夏の祭礼</text></svg>');">
+              <div class="carousel__caption">
+                <h2 class="carousel__title">太鼓の響き — 夏の祭礼</h2>
+                <p class="carousel__subtitle">練り歩く熱気と一体感を感じる旅</p>
+              </div>
+            </div>
+            <div class="carousel__slide" data-slide-index="2" style="background-image:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%221600%22 height=%22600%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%23314b70%22/><text x=%2250%25%22 y=%2252%25%22 font-size=%2240%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22 fill=%22%23fff3e0%22>受け継ぐ味 — 郷土料理</text></svg>');">
+              <div class="carousel__caption">
+                <h2 class="carousel__title">受け継ぐ味 — 郷土料理</h2>
+                <p class="carousel__subtitle">季節に寄り添う食文化を学ぶ</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- 前後ボタン／ドット -->
+        <button class="carousel__nav carousel__nav--prev" aria-label="前のスライド">‹</button>
+        <button class="carousel__nav carousel__nav--next" aria-label="次のスライド">›</button>
+        <div class="carousel__dots" aria-hidden="false"></div>
+      </section>
+
+      <!-- カテゴリ横スクロール（丸/角丸アイコン＋テキスト） -->
+      <section class="category" aria-label="カテゴリ">
+        <div class="category__inner">
+          <ul class="category__list">
+            <li class="category__item">
+              <button class="category__btn" data-category="crafts">
+                <span class="category__icon">🧵</span>
+                <span class="category__label">伝統工芸</span>
+              </button>
+            </li>
+            <li class="category__item">
+              <button class="category__btn" data-category="festival">
+                <span class="category__icon">⛩</span>
+                <span class="category__label">祭り</span>
+              </button>
+            </li>
+            <li class="category__item">
+              <button class="category__btn" data-category="architecture">
+                <span class="category__icon">🏯</span>
+                <span class="category__label">歴史建築</span>
+              </button>
+            </li>
+            <li class="category__item">
+              <button class="category__btn" data-category="food">
+                <span class="category__icon">🍚</span>
+                <span class="category__label">飲食・文化</span>
+              </button>
+            </li>
+            <li class="category__item">
+              <button class="category__btn" data-category="experience">
+                <span class="category__icon">👐</span>
+                <span class="category__label">体験</span>
+              </button>
+            </li>
+            <li class="category__item">
+              <button class="category__btn" data-category="folklore">
+                <span class="category__icon">📜</span>
+                <span class="category__label">伝承</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 注目ワード -->
+      <section class="section section--keywords" aria-label="注目ワード">
+        <div class="section__inner">
+          <header class="section__head">
+            <h3 class="section__title">注目ワード</h3>
+            <p class="section__desc">最近検索が増えているキーワード</p>
+          </header>
+          <div class="keywords">
+            <button class="keyword" data-keyword="職人技">職人技</button>
+            <button class="keyword" data-keyword="藍染">藍染</button>
+            <button class="keyword" data-keyword="太鼓">太鼓</button>
+            <button class="keyword" data-keyword="町家">町家</button>
+            <button class="keyword" data-keyword="郷土料理">郷土料理</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 特集（季節／地域） -->
+      <section class="section section--features" aria-label="特集">
+        <div class="section__inner">
+          <header class="section__head">
+            <h3 class="section__title">特集</h3>
+            <p class="section__desc">季節や地域の魅力を集めました</p>
+          </header>
+          <div class="grid grid--features">
+            <!-- カード（仮画像・オリジナル文言） -->
+            <article class="card card--feature">
+              <img class="card__image" alt="初夏の工芸めぐり" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='420' height='260'><rect width='100%25' height='100%25' fill='%23b26b48'/></svg>" />
+              <div class="card__body">
+                <h4 class="card__title">初夏の工芸めぐり</h4>
+                <p class="card__tag">地域：東部</p>
+                <p class="card__desc">涼やかな風の中、受け継がれる技へ</p>
+                <button class="card__btn">詳細を見る</button>
+              </div>
+            </article>
+            <article class="card card--feature">
+              <img class="card__image" alt="祭礼に加わる旅" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='420' height='260'><rect width='100%25' height='100%25' fill='%23375d49'/></svg>" />
+              <div class="card__body">
+                <h4 class="card__title">祭礼に加わる旅</h4>
+                <p class="card__tag">地域：南部</p>
+                <p class="card__desc">太鼓と掛け声、地域の一体感を体感</p>
+                <button class="card__btn">詳細を見る</button>
+              </div>
+            </article>
+            <article class="card card--feature">
+              <img class="card__image" alt="食文化の原点へ" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='420' height='260'><rect width='100%25' height='100%25' fill='%23334f72'/></svg>" />
+              <div class="card__body">
+                <h4 class="card__title">食文化の原点へ</h4>
+                <p class="card__tag">地域：北部</p>
+                <p class="card__desc">季節を映す郷土料理と素材を学ぶ</p>
+                <button class="card__btn">詳細を見る</button>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- 人気／新着カード群（軽いUIで余白多め） -->
+      <section class="section section--new" aria-label="新着スポット">
+        <div class="section__inner">
+          <header class="section__head">
+            <h3 class="section__title">新着スポット</h3>
+            <p class="section__desc">最近追加されたスポット</p>
+          </header>
+          <div class="grid grid--cards">
+            <!-- ダミーデータのカード（6枚） -->
+            <article class="card">
+              <img class="card__image" alt="古窯跡見学" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='200'><rect width='100%25' height='100%25' fill='%23865a3f'/></svg>" />
+              <div class="card__body">
+                <h4 class="card__title">古窯跡見学</h4>
+                <p class="card__tag">地域：南</p>
+                <p class="card__desc">発掘された古い窯の見学ツアー</p>
+                <button class="card__btn">詳細を見る</button>
+              </div>
+            </article>
+            <article class="card">
+              <img class="card__image" alt="町家の散策" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='200'><rect width='100%25' height='100%25' fill='%233b5a48'/></svg>" />
+              <div class="card__body">
+                <h4 class="card__title">町家の散策</h4>
+                <p class="card__tag">地域：北</p>
+                <p class="card__desc">保存された古建築を巡る歩き旅</p>
+                <button class="card__btn">詳細を見る</button>
+              </div>
+            </article>
+            <article class="card">
+              <img class="card__image" alt="伝統楽器の演奏会" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='200'><rect width='100%25' height='100%25' fill='%233f6b6b'/></svg>" />
+              <div class="card__body">
+                <h4 class="card__title">伝統楽器の演奏会</h4>
+                <p class="card__tag">地域：西</p>
+                <p class="card__desc">地域の楽器を体験できる公演</p>
+                <button class="card__btn">詳細を見る</button>
+              </div>
+            </article>
+            <article class="card">
+              <img class="card__image" alt="和紙づくり体験" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='200'><rect width='100%25' height='100%25' fill='%236a4a3b'/></svg>" />
+              <div class="card__body">
+                <h4 class="card__title">和紙づくり体験</h4>
+                <p class="card__tag">地域：東</p>
+                <p class="card__desc">手すき和紙のワークショップ</p>
+                <button class="card__btn">詳細を見る</button>
+              </div>
+            </article>
+            <article class="card">
+              <img class="card__image" alt="伝統菓子の試作会" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='200'><rect width='100%25' height='100%25' fill='%233a4b66'/></svg>" />
+              <div class="card__body">
+                <h4 class="card__title">伝統菓子の試作会</h4>
+                <p class="card__tag">地域：中央</p>
+                <p class="card__desc">甘味の作り方を学ぶイベント</p>
+                <button class="card__btn">詳細を見る</button>
+              </div>
+            </article>
+            <article class="card">
+              <img class="card__image" alt="伝統織物工房訪問" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='200'><rect width='100%25' height='100%25' fill='%23714f3b'/></svg>" />
+              <div class="card__body">
+                <h4 class="card__title">伝統織物工房訪問</h4>
+                <p class="card__tag">地域：南東</p>
+                <p class="card__desc">織りの工程を見学し体験する</p>
+                <button class="card__btn">詳細を見る</button>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- ========================= -->
+    <!-- 2) 結果ページセクション   -->
+    <!-- ========================= -->
+    <section id="page-results" class="page page--results" aria-label="検索結果ページ" hidden>
+      <div class="results">
+        <!-- レイアウト：PCは左カラム固定幅 + 右カラムカード、スマホは縦一列 -->
+        <aside class="results__filters" aria-label="検索条件">
+          <!-- 左カラム：検索フォーム（共通デザイン） -->
+          <form class="filter" id="resultsSearchForm">
+            <h3 class="filter__title">検索フォーム</h3>
+            <label class="filter__label" for="resultsKeyword">キーワード</label>
+            <input class="filter__input" id="resultsKeyword" type="search" placeholder="例：藍染 / 太鼓 / 郷土料理" />
+
+            <!-- 地域から検索：都道府県→市町村（階層） -->
+            <h4 class="filter__subtitle">地域から検索</h4>
+            <label class="filter__label" for="prefSelect">都道府県</label>
+            <select class="filter__select" id="prefSelect">
+              <!-- 仮の都道府県リスト（数件） -->
+              <option value="">選択してください</option>
+              <option value="愛知県">愛知県</option>
+              <option value="京都府">京都府</option>
+              <option value="青森県">青森県</option>
+            </select>
+            <label class="filter__label" for="citySelect">市町村</label>
+            <select class="filter__select" id="citySelect" disabled>
+              <!-- 都道府県選択後に動的に市町村が入る -->
+              <option value="">都道府県を選択してください</option>
+            </select>
+
+            <!-- カテゴリ選択（ダミー） -->
+            <h4 class="filter__subtitle">カテゴリ選択</h4>
+            <div class="filter__checkboxes">
+              <label><input type="checkbox" name="category" value="crafts" /> 伝統工芸</label>
+              <label><input type="checkbox" name="category" value="festival" /> 祭り</label>
+              <label><input type="checkbox" name="category" value="architecture" /> 歴史建築</label>
+              <label><input type="checkbox" name="category" value="food" /> 飲食・文化</label>
+              <label><input type="checkbox" name="category" value="experience" /> 体験</label>
+            </div>
+
+            <!-- 送信：結果を右カラムに反映（同ページ内で更新） -->
+            <button class="filter__submit" type="submit">この条件で検索</button>
+
+            <!-- なぞって検索への遷移ボタン（同仕様のショートカット） -->
+            <button class="filter__map" type="button" id="resultsGoMap">なぞって検索へ</button>
+          </form>
+        </aside>
+
+        <section class="results__list" aria-label="検索結果">
+          <!-- 検索条件の見出し（ダイナミックに更新） -->
+          <header class="results__head">
+            <h3 class="results__title" id="resultsTitle">検索結果</h3>
+            <p class="results__desc" id="resultsDesc">条件に合致したスポットを表示します</p>
+          </header>
+
+          <!-- カード型の結果リスト（グリッド） -->
+          <div class="grid grid--cards" id="resultsGrid">
+            <!-- JSで結果カードを差し込む -->
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- ========================= -->
+    <!-- 3) なぞって検索ページ      -->
+    <!-- ========================= -->
+    <section id="page-map" class="page page--map" aria-label="なぞって検索ページ" hidden>
+      <!-- 仕様：Google Map風の簡易UI（著作権保護のため自作の擬似地図） -->
+      <div class="map">
+        <!-- 操作ヘッダー：県選択、範囲指定モードなど -->
+        <div class="map__controls">
+          <div class="map__row">
+            <label class="map__label" for="mapPrefSelect">都道府県</label>
+            <select id="mapPrefSelect" class="map__select">
+              <option value="">選択してください</option>
+              <option value="愛知県">愛知県（県庁所在地：名古屋）</option>
+              <option value="京都府">京都府（県庁所在地：京都）</option>
+              <option value="青森県">青森県（県庁所在地：青森）</option>
+            </select>
+            <!-- 初期表示：選択した県の県庁所在地に合わせる（擬似座標へ移動） -->
+            <button class="map__button" id="mapCenterBtn">県庁所在地へ移動</button>
+          </div>
+          <div class="map__row">
+            <button class="map__button" id="rangeModeBtn">範囲指定モード：OFF</button>
+            <span class="map__hint">円形で範囲を指定できます（ドラッグで位置、スクロールで半径）</span>
+          </div>
+        </div>
+
+        <!-- 地図ビューポート（擬似地図：背景グリッド） -->
+        <div class="map__viewport" id="mapViewport" tabindex="0" aria-label="地図ビュー（擬似）">
+          <!-- 円形の選択範囲（非表示から開始） -->
+          <div class="map__circle" id="mapCircle" hidden></div>
+          <!-- スポットのピンはJSで生成してこの中に配置 -->
+        </div>
+
+        <!-- 結果のサマリー／一覧（地図下） -->
+        <div class="map__results">
+          <h3 class="map__title">指定範囲内のスポット</h3>
+          <p class="map__desc">円の中にあるスポットを検出して表示します（ダミーデータ）</p>
+          <div class="grid grid--cards" id="mapResultsGrid"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4) 詳細ページ（壺の伝統工芸品の紹介・サンプル） -->
+    <section id="page-detail" class="page page--detail" aria-label="詳細ページ" hidden>
+      <div class="detail" style="max-width:1100px;margin:0 auto;padding:16px;">
+        <button id="detailBackBtn" class="card__btn" style="margin-bottom:12px;">← 戻る</button>
+        <article class="card" style="display:flex;flex-direction:column;">
+          <img id="detailImage" class="card__image" alt="詳細画像" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='960' height='420'><rect width='100%25' height='100%25' fill='%23e9dccf'/></svg>" />
+          <div class="card__body">
+            <h2 id="detailTitle" class="card__title">壺 — 伝統工芸（サンプル）</h2>
+            <p id="detailRegion" class="card__tag">地域：不明</p>
+            <p id="detailDesc" class="card__desc">ここでは壺（陶器）の伝統的な制作技法や歴史、素材、体験情報を紹介するサンプルページです。</p>
+
+            <section style="margin-top:12px;">
+              <h4 style="margin:0 0 6px 0;color:#2b2b2b;">詳細情報（サンプル）</h4>
+              <ul id="detailExtra" style="margin:0;padding-left:18px;color:#444;font-size:14px;">
+                <li>素材：陶土</li>
+                <li>技法：高温焼成、釉薬の掛け分け</li>
+                <li>制作時間：1日〜数日（乾燥・焼成を含む）</li>
+                <li>体験：簡易の手びねり体験あり（要予約）</li>
+              </ul>
+            </section>
+
+            <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
+              <button id="detailReserve" class="card__btn">体験を予約する（仮）</button>
+              <button id="detailShare" class="card__btn" style="background:#ffd27a;color:#3b2b1f;">共有する（仮）</button>
+            </div>
+
+            <!-- AR 表示（陶芸の詳細のみ表示） -->
+            <div id="detailArArea" style="margin-top:14px; display:none; max-width:880px;">
+              <!-- 外部の AR ボタン（ページ上に見えるボタン） -->
+              <button id="detailArBtn" class="card__btn" style="background:#314b70;color:#fff;">ARで見る（工芸品）</button>
+
+              <!-- model-viewer：glb と usdz を models/ 以下から読み込む。内部にスロットで AR ボタンを配置 -->
+              <model-viewer id="detailModelViewer" style="width:100%;height:360px;margin-top:12px; display:block;" src="models/craft.glb" ios-src="models/craft.usdz" alt="工芸品の3Dモデル" camera-controls ar ar-modes="webxr scene-viewer quick-look">
+                <button slot="ar-button" id="mvArBtn" class="card__btn" style="background:#ffd27a;color:#3b2b1f;">ARで見る</button>
+              </model-viewer>
+            </div>
+
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- 全画面オーバーレイ：ARモデル表示用 -->
+  <div id="modelOverlay" class="model-overlay" aria-hidden="true" hidden>
+    <div class="model-overlay__inner">
+      <button id="modelOverlayClose" class="model-overlay__close" aria-label="閉じる">✕</button>
+      <model-viewer id="overlayModelViewer" style="width:100%;height:100%;" src="models/craft.glb" ios-src="models/craft.usdz" alt="工芸品の3Dモデル" camera-controls ar ar-modes="webxr scene-viewer quick-look">
+        <button slot="ar-button" id="overlayMvArBtn" class="card__btn" style="background:#ffd27a;color:#3b2b1f;">ARで見る</button>
+      </model-viewer>
+    </div>
+  </div>
+
+  <!-- フッター：伝統文化の説明／運営情報 -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="site-footer__inner">
+      <div class="footer__about">
+        <h4 class="footer__title">このサイトについて</h4>
+        <p class="footer__text">地域の伝統文化・産業・体験を紹介するためのサンプルUIです。掲載内容はすべてダミーです。</p>
+      </div>
+      <div class="footer__info">
+        <h4 class="footer__title">運営情報</h4>
+        <p class="footer__text">運営：文化をつなぐ会（仮）</p>
+        <p class="footer__text">お問い合わせ：sample@example.local</p>
+      </div>
+    </div>
+    <div class="site-footer__copyright">
+      <small>© 2025 伝統めぐり（サンプル）</small>
+    </div>
+  </footer>
+
+  <!-- 外部JSを読み込む -->
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,437 @@
+/* style.css
+   モバイルファーストのレスポンシブUI。BEM風クラス名で構造を明示。
+   和風で落ち着いたオリジナル配色（生成り／えんじ／深緑／紺／金）を用い、
+   ふるさとチョイスの色や画像はコピーせず独自のデザインとする。
+*/
+
+/* ベースリセット */
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  color: #232323;
+  background: #fffaf1; /* 生成り調の背景 */
+  font-family: "Noto Sans JP", "Hiragino Kaku Gothic Pro", system-ui, -apple-system, "Segoe UI", Roboto, "Yu Gothic", "Meiryo", sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* コンテナ共通 */
+.site-header__inner,
+.section__inner,
+.site-footer__inner,
+.category__inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* ==========================
+   ヘッダー（上部固定）
+   ========================== */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(253, 247, 235, 0.9);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  height: 64px;
+  gap: 8px;
+}
+.site-header__logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+.logo__mark {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #8b2f2f; /* えんじ */
+  color: #fff3e0;
+  font-weight: 700;
+}
+.logo__text { color: #2f2f2f; font-weight: 700; }
+
+/* 検索バー（中央） */
+.site-header__search {
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: center;
+}
+.search {
+  display: flex;
+  width: 100%;
+  max-width: 640px;
+  background: #fff;
+  border-radius: 28px;
+  padding: 6px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  align-items: center;
+}
+.search__input {
+  border: none;
+  outline: none;
+  padding: 10px 12px;
+  border-radius: 24px;
+  flex: 1 1 auto;
+  font-size: 14px;
+}
+.search__button {
+  border: none;
+  background: #2d5f4a; /* 深緑 */
+  color: #fff3e0;
+  padding: 8px 14px;
+  border-radius: 18px;
+  cursor: pointer;
+}
+
+/* アイコン群（右） */
+.site-header__icons {
+  display: flex;
+  gap: 8px;
+}
+.icon {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 8px;
+  color: #333;
+}
+.icon--map { text-decoration: none; display: inline-block; }
+
+/* 検索拡張：ヘッダー下のショートボタン */
+.site-header__ext {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  padding: 8px 16px 10px;
+  border-top: 1px solid rgba(0,0,0,0.04);
+  background: linear-gradient(180deg, rgba(255,250,241,0.95), rgba(255,250,241,0.85));
+}
+.ext__button {
+  border: 1px solid rgba(0,0,0,0.08);
+  background: #fffdf7;
+  color: #2d3b2d;
+  padding: 8px 12px;
+  border-radius: 18px;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+/* ==========================
+   ページ切り替え（単一HTML内）
+   ========================== */
+.page { display: block; }
+.page[hidden] { display: none !important; }
+
+/* ==========================
+   カルーセル
+   ========================== */
+.carousel {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.carousel__viewport { width: 100%; }
+.carousel__track {
+  display: flex;
+  transition: transform 520ms cubic-bezier(.22,.9,.25,1);
+  will-change: transform;
+}
+.carousel__slide {
+  min-width: 100%;
+  height: 400px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  padding: 24px;
+}
+.carousel__caption {
+  background: linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.28));
+  color: #fff;
+  padding: 16px;
+  border-radius: 8px;
+  max-width: 760px;
+}
+.carousel__title { margin: 0 0 6px 0; font-size: 22px; font-weight: 700; color: #fff3e0; }
+.carousel__subtitle { margin: 0; font-size: 14px; color: #fffdf7; }
+.carousel__nav {
+  position: absolute;
+  top: 50%; transform: translateY(-50%);
+  background: rgba(255,255,255,0.92);
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.carousel__nav--prev { left: 12px; }
+.carousel__nav--next { right: 12px; }
+.carousel__dots {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  bottom: 12px; display: flex; gap: 8px;
+}
+.carousel__dots button { width: 10px; height: 10px; border-radius: 50%; border: none; background: rgba(255,255,255,0.55); cursor: pointer; }
+.carousel__dots button.is-active { background: #ffd27a; } /* 金色アクセント */
+
+/* ==========================
+   カテゴリ横スクロール
+   ========================== */
+.category { padding: 12px 0; }
+.category__list {
+  display: flex; gap: 12px;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  list-style: none; padding: 10px 6px; margin: 0;
+}
+.category__item { flex: 0 0 auto; }
+.category__btn {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 8px 12px;
+  background: #fff; border-radius: 12px; min-width: 84px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.04);
+  cursor: pointer;
+}
+.category__icon {
+  width: 44px; height: 44px; border-radius: 10px;
+  background: #fff3e0; display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+}
+.category__label { font-size: 13px; color: #2d2d2d; }
+
+/* ==========================
+   セクション共通
+   ========================== */
+.section { padding: 18px 0; }
+.section__head { margin-bottom: 12px; }
+.section__title { margin: 0 0 6px 0; font-size: 18px; color: #2d3b2d; }
+.section__desc { margin: 0; font-size: 13px; color: #5a5a5a; }
+
+/* 注目ワード */
+.keywords { display: flex; gap: 10px; flex-wrap: wrap; }
+.keyword {
+  background: #fff; border-radius: 24px; padding: 8px 14px;
+  border: 1px solid rgba(0,0,0,0.05); cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+/* ==========================
+   グリッド（カード群）
+   ========================== */
+.grid { display: grid; gap: 16px; }
+.grid--features { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.grid--cards { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+
+/* カード共通 */
+.card {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+  transition: transform 240ms ease, box-shadow 240ms ease;
+  display: flex; flex-direction: column;
+}
+.card:hover { transform: translateY(-6px); box-shadow: 0 18px 36px rgba(0,0,0,0.08); }
+.card__image { width: 100%; height: 140px; object-fit: cover; display: block; }
+.card__body { padding: 14px; display: flex; flex-direction: column; gap: 8px; flex: 1 1 auto; }
+.card__title { margin: 0; font-size: 16px; color: #2b2b2b; font-weight: 700; }
+.card__tag { margin: 0; font-size: 12px; color: #6b6b6b; }
+.card__desc { margin: 0; font-size: 13px; color: #444; flex: 1 1 auto; }
+.card__btn {
+  align-self: flex-start; border: none; padding: 8px 12px;
+  background: #8b2f2f; color: #fff3e0; border-radius: 10px; cursor: pointer; font-size: 13px;
+}
+
+/* ==========================
+   結果ページ（2カラム）
+   ========================== */
+.results {
+  display: grid;
+  grid-template-columns: 1fr; /* モバイル：縦一列 */
+  gap: 16px;
+  padding: 16px;
+  max-width: 1100px; margin: 0 auto;
+}
+.results__filters {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+  padding: 14px;
+}
+.filter__title { margin: 0 0 8px 0; font-size: 16px; color: #2b2b2b; }
+.filter__subtitle { margin: 12px 0 8px; font-size: 14px; color: #2b2b2b; }
+.filter__label { display: block; font-size: 13px; margin-bottom: 6px; color: #3b3b3b; }
+.filter__input, .filter__select {
+  width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.12); background: #fffdf7;
+}
+.filter__checkboxes { display: grid; gap: 8px; grid-template-columns: 1fr 1fr; font-size: 13px; }
+.filter__submit, .filter__map {
+  margin-top: 12px; width: 100%; padding: 10px 12px;
+  border: none; border-radius: 8px; cursor: pointer; font-size: 14px;
+}
+.filter__submit { background: #2d5f4a; color: #fff3e0; }
+.filter__map { background: #ffd27a; color: #3b2b1f; }
+
+.results__list {
+  background: transparent;
+}
+.results__head { margin: 0 0 8px 0; padding: 0 4px; }
+.results__title { margin: 0 0 6px 0; font-size: 18px; color: #2d3b2d; }
+.results__desc { margin: 0; font-size: 13px; color: #5a5a5a; }
+
+/* PCレイアウト：左固定幅、右にカードリスト */
+@media (min-width: 960px) {
+  .results {
+    grid-template-columns: 300px 1fr;
+    align-items: start;
+  }
+  .results__filters {
+    position: sticky; top: 84px; /* ヘッダー高さ考慮して少し下に固定 */
+  }
+}
+
+/* ==========================
+   地図ページ（擬似地図UI）
+   ========================== */
+.map { max-width: 1100px; margin: 0 auto; padding: 16px; }
+.map__controls {
+  background: #fff; border-radius: 12px; padding: 12px; box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+  margin-bottom: 12px;
+}
+.map__row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.map__label { font-size: 13px; color: #3b3b3b; }
+.map__select {
+  padding: 8px 10px; border: 1px solid rgba(0,0,0,0.12); border-radius: 8px; background: #fffdf7;
+}
+.map__button {
+  padding: 8px 12px; border: none; border-radius: 8px; cursor: pointer; font-size: 13px;
+  background: #2d5f4a; color: #fff3e0;
+}
+#rangeModeBtn { background: #8b2f2f; }
+.map__hint { font-size: 12px; color: #5a5a5a; }
+
+.map__viewport {
+  position: relative;
+  height: 420px;
+  border-radius: 12px;
+  overflow: hidden;
+  background:
+    linear-gradient(0deg, rgba(255,255,255,0.6), rgba(255,255,255,0.6)),
+    repeating-linear-gradient(90deg, #e9e3d6 0, #e9e3d6 40px, #f3eddf 40px, #f3eddf 80px),
+    repeating-linear-gradient(0deg, #e9e3d6 0, #e9e3d6 40px, #f3eddf 40px, #f3eddf 80px);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
+}
+
+/* 円形範囲（ドラッグで移動、スクロールで半径変更） */
+.map__circle {
+  position: absolute;
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  border: 2px dashed #314b70; /* 紺 */
+  background: rgba(49, 75, 112, 0.12);
+  pointer-events: none; /* 円の上でもドラッグは地図に透過 */
+}
+
+/* ピン（スポット） */
+.map__pin {
+  position: absolute;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: #ffd27a; /* 金色 */
+  border: 2px solid #3b2b1f;
+  transform: translate(-50%, -100%); /* 下先端が位置に来るよう調整 */
+}
+.map__pin::after {
+  content: '';
+  position: absolute; left: 50%; bottom: -6px; transform: translateX(-50%);
+  width: 2px; height: 6px; background: #3b2b1f; /* 針のような見た目 */
+}
+
+/* 地図下の結果グリッド */
+.map__results { margin-top: 12px; }
+.map__title { margin: 0 0 6px; font-size: 16px; color: #2d3b2d; }
+.map__desc { margin: 0 0 8px; font-size: 13px; color: #5a5a5a; }
+
+/* ==========================
+   フッター
+   ========================== */
+.site-footer {
+  margin-top: 24px;
+  background: linear-gradient(180deg, #fffaf1, #f7efe1);
+  border-top: 1px solid rgba(0,0,0,0.04);
+  padding: 18px 0;
+}
+.site-footer__inner {
+  display: flex; gap: 24px; align-items: flex-start; padding-bottom: 12px;
+  max-width: 1100px; margin: 0 auto; padding-left: 16px; padding-right: 16px;
+}
+.footer__title { margin: 0 0 8px 0; font-size: 14px; color: #2b2b2b; }
+.footer__text { margin: 0 0 8px 0; color: #5a5a5a; font-size: 13px; }
+.site-footer__copyright { text-align: center; padding-top: 6px; color:#6b6b6b; }
+
+/* ==========================
+   レスポンシブ（スマホ）
+   ========================== */
+@media (max-width: 768px) {
+  .site-header__inner { height: 60px; gap: 6px; padding: 0 8px; }
+  .search { max-width: 420px; padding: 4px; }
+  .carousel__slide { height: 320px; padding: 18px; }
+  .carousel__caption { max-width: 92%; padding: 12px; }
+  .carousel__title { font-size: 18px; }
+  .carousel__subtitle { font-size: 12px; }
+  .grid--features,
+  .grid--cards { grid-template-columns: 1fr; } /* スマホは1カラム */
+}
+
+/* 詳細ページ用の微調整 */
+.page--detail .card__image {
+  height: 420px; max-height: 60vh; object-fit: cover;
+}
+.page--detail .card__body { max-width: 880px; margin: 0 auto; }
+
+/* フォーカスリング（アクセシビリティ） */
+button:focus, a:focus, .map__viewport:focus {
+  outline: 3px solid rgba(45,95,74,0.18);
+  outline-offset: 2px;
+}
+
+/* model-viewer / AR ボタン */
+#detailArArea { display: none; }
+#detailModelViewer { border-radius: 10px; overflow: hidden; }
+#detailArBtn { display: inline-flex; align-items: center; gap: 8px; }
+
+/* モデルオーバーレイ（全画面） */
+.model-overlay {
+  position: fixed;
+  left: 0; top: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1200;
+}
+.model-overlay__inner {
+  width: calc(100% - 40px);
+  max-width: 1000px;
+  height: calc(100% - 80px);
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  padding: 12px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.model-overlay__close {
+  position: absolute; right: 12px; top: 12px;
+  border: none; background: transparent; font-size: 22px; cursor: pointer;
+}
+.model-overlay model-viewer { width: 100%; height: 100%; background: #f7f3ee; }
